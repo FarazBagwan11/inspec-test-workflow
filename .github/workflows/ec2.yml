@@ -1,19 +1,5 @@
 name: 'EC2 Creation'
 
-# on: 
-#  push:
-#    branches: [ master ]
- # pull_request:
- #   branches: [ master ]
-
-  # Allows you to run this workflow manually from the Actions tab
- # workflow_dispatch:
- #   inputs:
- #     region:
- #       description: 'AWS Region to deploy to'
- #       required: true
- #       default: 'ap-south-1'
-
 on:
   push:
     branches:
@@ -38,4 +24,4 @@ jobs:
 
       - name: Creating EC2
         run: |
-          aws ec2 run-instances --image-id ami-072b0ca48713abe5a --count 1 --instance-type t2.micro --key-name MyEC2Instance --security-group-ids sg-057943c0ab3e75683 --subnet-id subnet-08cc31842e79717d3 --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=New1}]" --user-data file://userdata.txt
+          aws ec2 run-instances --image-id ami-05a0729a7c3121089 --count 1 --instance-type t2.medium --key-name GlobalLogics --security-group-ids sg-0c8925ad61b8ede76 --subnet-id subnet-0b0d514911d387518 --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=NewServiceAMITesting}]" --user-data file://userdata.txt
