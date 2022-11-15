@@ -33,14 +33,15 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+        aws-session-token: ${{ secrets.SESSION_TOKEN }}
         aws-region: ${{ secrets.REGION }}
 
     - name: Run tests
       run: |
         net start winrm
-        $ID=aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=New1" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
+        $ID=aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=NewServiceAMITesting" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
         $ID
-        $IP=aws --region ap-south-1 ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
+        $IP=aws --region us-west-2 ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
         $IP
         sleep 20
         $env:Path += ';C:\opscode\inspec\bin\'
