@@ -1,0 +1,41 @@
+name: 'EC2 Creation'
+
+# on: 
+#  push:
+#    branches: [ master ]
+ # pull_request:
+ #   branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+ # workflow_dispatch:
+ #   inputs:
+ #     region:
+ #       description: 'AWS Region to deploy to'
+ #       required: true
+ #       default: 'ap-south-1'
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployEC2:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code from master branch
+        uses: actions/checkout@v2
+
+      # Configure AWS Credential
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-session-token: ${{ secrets.SESSION_TOKEN }}
+          aws-region: ${{ secrets.REGION }}
+
+      - name: Creating EC2
+        run: |
+          aws ec2 run-instances --image-id ami-072b0ca48713abe5a --count 1 --instance-type t2.micro --key-name MyEC2Instance --security-group-ids sg-057943c0ab3e75683 --subnet-id subnet-08cc31842e79717d3 --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=New1}]" --user-data file://userdata.txt
