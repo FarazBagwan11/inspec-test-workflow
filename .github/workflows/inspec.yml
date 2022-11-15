@@ -1,0 +1,52 @@
+name: 'Inspec test execution'
+on:
+  workflow_run:
+    workflows: ["EC2 Creation"]
+    branches: [main]
+    types: 
+      - completed
+jobs:
+  on-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - run: echo 'The triggering workflow passed'
+  on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'The triggering workflow failed'      
+
+  Inspec-tests:
+   # needs: provision-ec2
+    runs-on: windows-latest
+    steps:      
+    - name: Check out code
+      uses: actions/checkout@master
+    
+    - name: Install Inspec on runner
+      run: |
+        . { iwr -useb https://omnitruck.chef.io/install.ps1 } | iex; install -project inspec 
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+        aws-region: ${{ secrets.REGION }}
+
+    - name: Run tests
+      run: |
+        net start winrm
+        $ID=aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=New1" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
+        $ID
+        $IP=aws --region ap-south-1 ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
+        $IP
+        sleep 20
+        $env:Path += ';C:\opscode\inspec\bin\'
+        inspec --chef-license=accept
+        inspec exec .\test2.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
+        $SEC="Using https 5986"
+        $SEC
+        inspec exec .\test2.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed
+ 
