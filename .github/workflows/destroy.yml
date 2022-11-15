@@ -21,11 +21,12 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-session-token: ${{ secrets.SESSION_TOKEN }}
           aws-region: ${{ secrets.REGION }}
                  
       - name: Destroy on SUCCESS
         run: |
-          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=New1' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=NewServiceAMITesting' --output text --query 'Reservations[*].Instances[*].InstanceId'`
           echo "Destroying $ID"
           aws ec2 terminate-instances --instance-ids $ID    
         
@@ -41,10 +42,11 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-session-token: ${{ secrets.SESSION_TOKEN }}
           aws-region: ${{ secrets.REGION }}
               
       - name: Destroy on FAILURE
         run: |
-          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=New1' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=NewServiceAMITesting' --output text --query 'Reservations[*].Instances[*].InstanceId'`
           echo "Destroying $ID"
           aws ec2 terminate-instances --instance-ids $ID
