@@ -3,7 +3,7 @@ name: 'EC2 Creation'
 on:
   push:
     branches:
-      - main
+      - mainn
   
 env:
   AMI_ID: ami-05a0729a7c3121089
@@ -11,7 +11,7 @@ env:
   KEY: GlobalLogics
   SG_ID: sg-0c8925ad61b8ede76
   SUB_ID: subnet-0b0d514911d387518
-  INST_NAME: NewServiceAMITesting1177DEL
+  INST_NAME: NewServiceAMITesting1122DEL
   REGION: us-west-2
           
 jobs:
@@ -66,7 +66,7 @@ jobs:
           }
           
           echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
-          sleep 50
+          sleep 60
           $IP=aws --region $env:REGION ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
           $ipaddress="$IP"
           $port = "5986"
