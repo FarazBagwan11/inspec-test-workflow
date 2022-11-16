@@ -6,7 +6,7 @@ on:
     types: 
       - completed
 env:
-  INST_NAME: NewServiceAMITesting1122DEL
+  INST_NAME: NewServiceAMITesting1133DEL
   REGION: us-west-2
   
 jobs:
@@ -49,6 +49,22 @@ jobs:
         $IP
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
-        $SEC="Using https 5986"
+        
+        echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
+        $ipaddress="$IP"
+        $port = "5986"
+        $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
+        while($true){
+        if ($connection.Connected) {
+        echo " Success: WINRM HTTPS PORT 5986 is OPEN and LISTENING"
+        Break
+        } else {
+        echo " FAILURE: WINRM HTTPS PORT 5986 is NOT LISTENING. Trying again"
+        sleep 5
+        Continue 
+        }
+        }
+
+        $SEC="Using https 5986...Testing Begins..."
         $SEC
         inspec exec .\test2.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed
