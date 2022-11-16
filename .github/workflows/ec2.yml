@@ -3,7 +3,7 @@ name: 'EC2 Creation'
 on:
   push:
     branches:
-      - mainn
+      - main
   
 env:
   AMI_ID: ami-05a0729a7c3121089
@@ -11,7 +11,7 @@ env:
   KEY: GlobalLogics
   SG_ID: sg-0c8925ad61b8ede76
   SUB_ID: subnet-0b0d514911d387518
-  INST_NAME: NewServiceAMITesting1122DEL
+  INST_NAME: NewServiceAMITesting1133DEL
   REGION: us-west-2
           
 jobs:
@@ -60,23 +60,6 @@ jobs:
           'initializing'
           echo "Check 1: Instance Status -> $instance_status"
           echo "Check 2: System Status -> $system_status"
-          sleep 5
-          Continue 
-          }
-          }
-          
-          echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
-          sleep 60
-          $IP=aws --region $env:REGION ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
-          $ipaddress="$IP"
-          $port = "5986"
-          $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
-          while($true){
-          if ($connection.Connected) {
-          echo " Success: WINRM HTTPS PORT 5986 is OPEN and LISTENING"
-          Break
-          } else {
-          echo " FAILURE: WINRM HTTPS PORT 5986 is NOT LISTENING. Trying again"
           sleep 5
           Continue 
           }
