@@ -7,7 +7,7 @@ on:
     types: 
       - completed
 env:
-  INST_NAME: NewServiceAMITesting1177DEL 
+  INST_NAME: NewServiceAMITesting1122DEL 
 
 jobs:
   on-success:
@@ -28,7 +28,7 @@ jobs:
                  
       - name: Destroy on SUCCESS
         run: |
-          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=$INST_NAME' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=${{env.INST_NAME}}' --output text --query 'Reservations[*].Instances[*].InstanceId'`
           echo "Destroying $ID"
           aws ec2 terminate-instances --instance-ids $ID    
         
@@ -48,6 +48,6 @@ jobs:
               
       - name: Destroy on FAILURE
         run: |
-          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=$INST_NAME' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=${{env.INST_NAME}}' --output text --query 'Reservations[*].Instances[*].InstanceId'`
           echo "Destroying $ID"
           aws ec2 terminate-instances --instance-ids $ID
