@@ -7,7 +7,7 @@ on:
     types: 
       - completed
 env:
-  INST_NAME: NewServiceAMITesting1122DEL 
+  INST_NAME: NewServiceAMITesting1133DEL 
 
 jobs:
   on-success:
