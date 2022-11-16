@@ -6,7 +6,7 @@ on:
     types: 
       - completed
 env:
-  INST_NAME: NewServiceAMITesting1177DEL
+  INST_NAME: NewServiceAMITesting1122DEL
   REGION: us-west-2
   
 jobs:
@@ -49,7 +49,6 @@ jobs:
         $IP
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
-        inspec exec .\test2.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         $SEC="Using https 5986"
         $SEC
         inspec exec .\test2.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed
