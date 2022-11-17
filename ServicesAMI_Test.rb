@@ -111,14 +111,7 @@ end
 #Description : Verifying if the file exists and it's contents
 describe file('C:\OBOL\Utilities\OBOL_Recursive_Delete\obol_recursive_delete.bat') do
  it { should exist }
- its(:content) { should match 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30 
-' }
-end
-
-describe file('C:\OBOL\Utilities\OBOL_Recursive_Delete\obol_recursive_delete.bat') do
- it { should exist }
- its('content') { should match 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30 
-' }
+ its('content') { should include 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30' }
 end
 
 #Title : Verifying if 'ODBC Driver 17' is installed
