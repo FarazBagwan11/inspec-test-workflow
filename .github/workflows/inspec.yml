@@ -67,4 +67,4 @@ jobs:
 
         $SEC="Using https 5986...Testing Begins..."
         $SEC
-        inspec exec .\test2.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed
+        inspec exec .\ServicesAMI_Test.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed
