@@ -6,9 +6,8 @@ describe file('C:\Users\Public\Desktop\odbcad32.lnk') do
 end
 
 #Title : Test Outcome #1
-#Description : Verifying the target path of shortcut exists
-describe command("$Shortcuts = Get-ChildItem -Recurse 'C:\\Users\\Public\\Desktop\\' -Include odbcad32.lnk") do
-output = `powershell.exe  #{"$Shortcuts = Get-ChildItem -Recurse 'C:\\Users\\Public\\Desktop\\' -Include odbcad32.lnk
+#Description : Verifying the target path of shortcut
+describe powershell("$Shortcuts = Get-ChildItem -Recurse 'C:\\Users\\Public\\Desktop\\' -Include odbcad32.lnk
     $Shell = New-Object -ComObject WScript.Shell
     foreach ($Shortcut in $Shortcuts)
     {
@@ -20,19 +19,9 @@ output = `powershell.exe  #{"$Shortcuts = Get-ChildItem -Recurse 'C:\\Users\\Pub
         Target = $Shell.CreateShortcut($Shortcut).targetpath
         }
                  New-Object PSObject -Property $Properties
-                 }"}`
- puts output
- output.to_enum(:scan, /(Target)(.*)/i).map do |m,|
-  Target= output[($`.size+15),(32)]
-  puts "Target is "
-  puts Target
-  end
-   describe "Verifying the Target path " do
-
-                it "of the shortcut" do
-                expect(Target).to eq 'C:\\Windows\\SysWOW64\\odbcad32.exe'
-                end
-        end
+                 }") do
+                 puts "Verifying the target path of shortcut"
+                 its('stdout') { should include 'Target       : C:\Windows\SysWOW64\odbcad32.exe' }
 end
 
 #Title : Test Outcome #2
@@ -54,74 +43,24 @@ describe windows_task('Service Restart') do
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
-#Verifying the Trigger of "Service Restart' windows task
-
-describe command("Get-ScheduledTaskInfo 'Service Restart'") do
-output = `powershell.exe  #{"Get-ScheduledTaskInfo 'Service Restart'"}`
- output.to_enum(:scan, /(LastRunTime)(.*)/i).map do |m,|
-#puts $` .size
-  end
-   output.to_enum(:scan, /(NextRunTime)(.*)/i).map do |m,|
-  Restart_NextRunDate = output[($`.size+21),(11)]
-  Restart_NextRunTime = output[($`.size+31),(11)]
-  end
-  describe "Verifying if the Next Run Time" do
-
-                it "is 2:30:30 AM" do
-                puts "Printing NextRunTime: "
-                puts Restart_NextRunTime
-                #expect(NextRunTime).to eq "2:30:30 AM"
-                expect(Restart_NextRunTime).to include ("2:30:30 AM")
-                end
-        end
-end
-#Verifying the trigger of "Service Restart' windows task is Daily
-describe command("Get-ScheduledTask -TaskName 'Service Restart' \" -Verbose | select Triggers \"") do
-it { should exist }
-Restart_Trigger_output = `powershell.exe #{"Get-ScheduledTask -TaskName 'Service Restart' \" -Verbose | select Triggers \""}`
-
-describe "Verifying if the frequency Trigger" do
-
-                it "is daily" do
-                puts "Printing Trigger_output: "
-                puts Restart_Trigger_output
-                expect(Restart_Trigger_output).to include ("MSFT_TaskDailyTrigger")
-                end
-        end
-puts "Powershell command has the string 'MSFT_TaskDailyTrigger'"
+#Verifying the Trigger of 'Service Restart' windows task
+describe powershell("Get-ScheduledTaskInfo 'Service Restart' | Select NextRunTime") do
+puts "Verifying if the Next Run Time of 'Service Restart' is '2:30:30 AM'"
+its('strip') { should include '2:30:30 AM' }
 end
 
-#Verifcying the description of "Service Restart' windows task
-describe command("Get-ScheduledTask -TaskName 'Service Restart' \" -Verbose | select description \"") do
-output = `powershell.exe #{"Get-ScheduledTask -TaskName 'Service Restart' \"-Verbose | select description \""}`
-
-puts output
-if(output.include?("Performs Windows service restarts"))
-
-puts "Powershell command has the string 'Windows service restarts'"
-
-output.to_enum(:scan,/(Performs)(.*)/i).map do |m,|
-#puts ($` .size)
-  Restart_Description = output[($`.size),(120)]
-  end
-
-  describe "Verifying if the Description" do
-
-                it "is as expected for Service Restart" do
-                puts "Printing Description: "
-                puts Restart_Description
-                expect("Performs Windows service restarts of the defined list of WIndows services that require a forced stop. This would include
-Hyland Core Distribution and Workflow along with Thick Client workflow services.").to include (Restart_Description)
-                end
-        end
-
-else
- specify "this test fails" do
-  raise "because the description does not include the text 'Windows service restarts'"
-end
-end
+#Verifying the trigger of 'Service Restart' windows task is Daily
+describe powershell("Get-ScheduledTask -TaskName 'Service Restart' -Verbose | select Triggers") do
+puts "Verifying the trigger of 'Service Restart' windows task is Daily"
+its('strip') { should include 'MSFT_TaskDailyTrigger' }
 end
 
+#Verifying the description of 'Service Restart' windows task
+describe powershell("Get-ScheduledTask -TaskName 'Service Restart' -Verbose | select description") do
+puts "Verifying the description of 'Service Restart' windows task"
+its('strip') { should include 'Performs Windows service restarts of the defined list of WIndows services that require a forced stop.' }
+
+end
 
 #Title : Test Outcome #3b
 #Description : Verifying the features related to the 'Service Monitor' windows task
@@ -132,61 +71,25 @@ describe windows_task('Service Monitor') do
   #its('start_time') { should eq '14:30' }
 end
 
-#Verifying the Repetition Trigger of "Service Monitor' windows task
+#Verifying the Repetition Trigger of 'Service Monitor' windows task
 describe powershell("$task = Get-ScheduledTask -TaskName 'Service Monitor'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
+ puts "Verifying the Repetition Trigger of 'Service Monitor' windows task"
   its('strip') { should eq 'PT5M' }
 end
 
-#Verifying the Boot up Time Trigger of "Service Monitor' windows task
-describe command("Get-ScheduledTask -TaskName 'Service Monitor' \" -Verbose | select Triggers \"") do
-it { should exist }
-Trigger_output = `powershell.exe #{"Get-ScheduledTask -TaskName 'Service Monitor' \" -Verbose | select Triggers \""}`
-
-
-describe "Verifying if the Trigger" do
-
-                it "is as expected for MSFT_TaskBootTrigger" do
-                puts "Printing Trigger_output: "
-                puts Trigger_output
-                expect(Trigger_output).to include ("MSFT_TaskBootTrigger")
-                end
-        end
-
-puts "Powershell command has the string 'MSFT_TaskBootTrigger'"
-
-
+#Verifying the Boot up Time Trigger of 'Service Monitor' windows task
+describe powershell("Get-ScheduledTask -TaskName 'Service Monitor' -Verbose | select Triggers ") do
+ puts "Verifying the Boot up Time Trigger of 'Service Monitor' windows task"
+its('strip') {should include "MSFT_TaskBootTrigger"}
 end
 
-#Verifying the Description of "Service Monitor' windows task
-describe command("Get-ScheduledTask -TaskName 'Service Monitor' \" -Verbose | select description \"") do
-output = `powershell.exe #{"Get-ScheduledTask -TaskName 'Service Monitor' \"-Verbose | select description \""}`
 
-puts output
-if(output.include?("Monitors"))
-
-puts "Powershell command has the string 'Monitors'"
-
-output.to_enum(:scan,/(Monitors)(.*)/i).map do |m,|
-#puts ($` .size)
-  Monitor_Description= output[($`.size),(110)]
-  end
-
-  describe "Verifying if the Description" do
-
-                it "is as expected for Service Monitor" do
-                puts "Printing Description: "
-                puts Monitor_Description
-                expect("Monitors the defined list of Windows services to ensure that they are running. Please see the wiki for more information."
-).to include (Monitor_Description)
-                end
-        end
-
-else
- specify "this test fails" do
-  raise "because the description does not include the text 'Monitors'"
-end
-end
+#Verifying the Description of 'Service Monitor' windows task
+describe powershell("Get-ScheduledTask -TaskName 'Service Monitor' -Verbose | select description ") do
+puts "Verifying the Description of 'Service Monitor' windows task"
+its('strip') {should include "Monitors the defined list of Windows services to ensure that they are running. Please see the wiki for more informa
+tion."}
 end
 
 #Title : Test Outcome #3c
@@ -200,6 +103,8 @@ end
 #Description : Verifying the Trigger of ' OBOL_Recursive_Delete' windows task
 describe powershell("$task = Get-ScheduledTask -TaskName 'OBOL_Recursive_Delete'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
+#puts "Verifying the Trigger of ' OBOL_Recursive_Delete' windows task"
+Inspec::Log.info('Hi')
   its('strip') { should eq 'PT5M' }
 end
 
@@ -210,12 +115,12 @@ describe file('C:\OBOL\Utilities\OBOL_Recursive_Delete\obol_recursive_delete.bat
  its(:content) { should match 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30' }
 end
 
-#Description : Verifying if 'ODBC Driver 17' is installed
+#Title : Verifying if 'ODBC Driver 17' is installed
 describe package('Microsoft ODBC Driver 17 for SQL Server') do
  it { should be_installed }
 end
 
-#Description : Verifying if 'ODcto Tentacle' is installed
+#Title : Verifying if 'ODcto Tentacle' is installed
 describe package('Octopus Deploy Tentacle') do
  it { should be_installed }
 end
