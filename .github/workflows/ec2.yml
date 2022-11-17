@@ -3,7 +3,7 @@ name: 'EC2 Creation'
 on:
   push:
     branches:
-      - mainn
+      - main
   
 env:
   AMI_ID: ami-05a0729a7c3121089
