@@ -23,7 +23,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
-          aws-session-token: ${{ secrets.SESSION_TOKEN }}
+          # aws-session-token: ${{ secrets.SESSION_TOKEN }}
           aws-region: ${{ secrets.REGION }}
                  
       - name: Destroy on SUCCESS
@@ -44,6 +44,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          # aws-session-token: ${{ secrets.SESSION_TOKEN }}
           aws-region: ${{ secrets.REGION }}
               
       - name: Destroy on FAILURE
