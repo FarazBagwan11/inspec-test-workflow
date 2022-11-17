@@ -88,8 +88,7 @@ end
 #Verifying the Description of 'Service Monitor' windows task
 describe powershell("Get-ScheduledTask -TaskName 'Service Monitor' -Verbose | select description ") do
 puts "Verifying the Description of 'Service Monitor' windows task"
-its('strip') {should include "Monitors the defined list of Windows services to ensure that they are running. Please see the wiki for more informa
-tion."}
+its('strip') {should include "Monitors the defined list of Windows services to ensure that they are running. Please see the wiki for more information."}
 end
 
 #Title : Test Outcome #3c
@@ -112,7 +111,8 @@ end
 #Description : Verifying if the file exists and it's contents
 describe file('C:\OBOL\Utilities\OBOL_Recursive_Delete\obol_recursive_delete.bat') do
  it { should exist }
- its(:content) { should match 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30' }
+ its('content') { should match 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30
+ ' }
 end
 
 #Title : Verifying if 'ODBC Driver 17' is installed
