@@ -3,7 +3,7 @@ name: 'EC2 Creation'
 on:
   push:
     branches:
-      - main
+      - mainn
   
 env:
   AMI_ID: ami-05a0729a7c3121089
@@ -40,8 +40,14 @@ jobs:
           $ID
           echo "Instance reachability checks initiated...."
           $instance_status=''
+          $system_status=''     
+          $slimit = (Get-Date).AddMinutes(15)
+          $limit = (Get-Date).AddMinutes(16)
+          echo "Instance reachability checks initiated...."
+          $instance_status=''
           $system_status=''
-          while($true){
+          while ((Get-Date) -le $limit){
+          #while($true){
           $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
           $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
           If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
@@ -55,6 +61,9 @@ jobs:
           echo "Check 1: Instance Status -> $instance_status"
           echo "Check 2: System Status -> $system_status"
           sleep 2
+          Break
+          } ElseIf ((Get-Date) -gt $slimit){
+          echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
           Break
           } Else {
           'initializing'
