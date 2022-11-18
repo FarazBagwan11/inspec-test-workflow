@@ -1,0 +1,136 @@
+name: 'EC2 Creation'
+
+on:
+  push:
+    branches:
+      - main
+  
+env:
+  AMI_ID: ami-05a0729a7c3121089
+  INST_TYPE: t3.medium
+  KEY: GlobalLogics
+  SG_ID: sg-0c8925ad61b8ede76
+  SUB_ID: subnet-0b0d514911d387518
+  INST_NAME: ServiceAMITest-${{ github.run_id }}-${{ github.run_attempt }}
+          
+jobs:
+  Create_and_DeployEC2:
+    runs-on: windows-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code from master branch
+        uses: actions/checkout@v2
+
+      # Configure AWS Credential
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: ${{ secrets.REGION }}
+       
+      - name: Creating EC2     
+        run: |
+          certutil -decode file.txt new11.txt
+          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data file://new11.txt
+          $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
+          $ID
+          
+          echo "Initiating instance reachability checks..."   
+          $slimit = (Get-Date).AddMinutes(10)
+          $limit = (Get-Date).AddMinutes(11)
+          $instance_status=''
+          $system_status=''
+          
+          while ((Get-Date) -le $limit){
+          $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
+          $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
+          If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
+          '2/2 checks Passed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 2
+          Break
+          } ElseIf ($instance_status -eq 'failed' -AND $system_status -eq 'failed')  {
+          '2/2 checks Failed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 2
+          Break
+          } ElseIf ((Get-Date) -gt $slimit){
+          echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
+          Break
+          } Else {
+          'initializing'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 20
+          Continue 
+          }
+          }
+
+  Install_Inspec_and_Run_Tests:
+    needs: Create_and_DeployEC2
+    runs-on: windows-latest
+    steps:      
+    - name: Check out code
+      uses: actions/checkout@master
+    
+    - name: Install Inspec on runner
+      run: |
+        . { iwr -useb https://omnitruck.chef.io/install.ps1 } | iex; install -project inspec 
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+        aws-region: ${{ secrets.REGION }}
+        
+    - name: Run tests
+      run: |
+        net start winrm
+        $ID=aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
+        $ID
+        $IP=aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text
+        $IP
+        $env:Path += ';C:\opscode\inspec\bin\'
+        inspec --chef-license=accept
+        
+        echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
+        $ipaddress="$IP"
+        $port = "5986"
+        $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
+        while($true){
+        if ($connection.Connected) {
+        echo " Success: WINRM HTTPS PORT 5986 is OPEN and LISTENING"
+        Break
+        } else {
+        echo " FAILURE: WINRM HTTPS PORT 5986 is NOT LISTENING. Trying again"
+        sleep 5
+        Continue 
+        }
+        }
+        echo "Testing via WinRM https-5986"
+        inspec exec .\ServicesAMI_Test.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed        
+        
+  DestroyEC2:
+    if: ${{ always() }}
+    needs: [Create_and_DeployEC2, Install_Inspec_and_Run_Tests]  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from master branch
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: ${{ secrets.REGION }}
+                 
+      - name: Destroy on SUCCESS OR FAILURE
+        run: |
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=${{env.INST_NAME}}' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          echo "Destroying $ID"
+          aws ec2 terminate-instances --instance-ids $ID
