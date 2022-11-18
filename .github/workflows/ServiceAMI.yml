@@ -97,7 +97,7 @@ jobs:
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
         
-        echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
+        echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING....."
         $ipaddress="$IP"
         $port = "5986"
         $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
