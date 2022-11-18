@@ -1,4 +1,4 @@
-name: 'EC2 Creation'
+name: 'APP WEB AMI TEST'
 
 on:
   push:
