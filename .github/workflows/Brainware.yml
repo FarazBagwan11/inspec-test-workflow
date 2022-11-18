@@ -1,4 +1,4 @@
-name: 'EC2 Creation'
+name: 'BRAINWARE VISIBILITY AMI TEST'
 
 on:
   push:
