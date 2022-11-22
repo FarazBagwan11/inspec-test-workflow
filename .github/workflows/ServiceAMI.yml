@@ -3,7 +3,7 @@ name: 'SERVICE AMI TEST WORKFLOW'
 on:
   push:
     branches:
-      - main
+      - mainn
   
 env:
   AMI_ID: ami-05a0729a7c3121089
