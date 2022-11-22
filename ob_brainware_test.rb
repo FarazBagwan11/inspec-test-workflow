@@ -31,7 +31,7 @@ describe registry_key({
                         key: '\System\CurrentControlSet\Control'
                       }) do
   it { should exist }
-  its('ServicesPipeTimeout') { should eq 60_000 }
+  its('ServicesPipeTimeout') { should eq 60000 }
 end
 
 # Title : Test Outcome #3
@@ -47,9 +47,7 @@ end
 
 describe windows_task('IIS Reset') do
   it { should exist }
-  its('task_to_run') do
-    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe IISRESET'
-  end
+  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe IISRESET' }
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -72,9 +70,7 @@ end
 
 describe windows_task('Service Restart') do
   it { should exist }
-  its('task_to_run') do
-    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Restart'
-  end
+  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Restart' }
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -97,9 +93,7 @@ end
 
 describe windows_task('Service Monitor') do
   it { should exist }
-  its('task_to_run') do
-    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Start'
-  end
+  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Start' }
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -153,6 +147,7 @@ end
 describe package('*Microsoft Visual C++ *2010 *64 Redistributable - 10.0.30319') do
   it { should be_installed }
 end
+
 # Title : Verifying if 'VC86' is installed
 describe package('*Microsoft Visual C++ *2010 *86 Redistributable - 10.0.30319') do
   it { should be_installed }
