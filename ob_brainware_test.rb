@@ -131,7 +131,6 @@ end
 
 describe powershell("$task = Get-ScheduledTask -TaskName 'OBOL_Recursive_Delete'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
-  # puts "Verifying the Trigger of ' OBOL_Recursive_Delete' windows task"
   its('strip') { should eq 'PT5M' }
 end
 
