@@ -62,15 +62,6 @@ describe powershell("Get-ScheduledTask -TaskName 'Service Restart' -Verbose | se
   its('strip') { should include 'MSFT_TaskDailyTrigger' }
 end
 
-# Verifying the description of 'Service Restart' windows task
-
-describe powershell("Get-ScheduledTask -TaskName 'Service Restart' -Verbose | select description") do
-  puts "Verifying the description of 'Service Restart' windows task"
-  its('strip') do
-    should include 'Performs Windows service restarts of the defined list of Windows services that require a forced'
-  end
-end
-
 # Title : Test Outcome #3b
 # Description : Verifying the features related to the 'Service Monitor' windows task
 
@@ -98,15 +89,6 @@ describe powershell("Get-ScheduledTask -TaskName 'Service Monitor' -Verbose | se
   its('strip') { should include 'MSFT_TaskBootTrigger' }
 end
 
-# Verifying the Description of 'Service Monitor' windows task
-
-describe powershell("Get-ScheduledTask -TaskName 'Service Monitor' -Verbose | select description ") do
-  puts "Verifying the Description of 'Service Monitor' windows task"
-  its('strip') do
-    should include 'Monitors the defined list of Windows services to ensure that they are running. Please see the wiki'
-  end
-end
-
 # Title : Test Outcome #3c
 # Description : Verifying the features related to the ' OBOL_Recursive_Delete' windows task
 
@@ -120,8 +102,7 @@ end
 
 describe powershell("$task = Get-ScheduledTask -TaskName 'OBOL_Recursive_Delete'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
-  # puts "Verifying the Trigger of ' OBOL_Recursive_Delete' windows task"
-  Inspec::Log.info('Hi')
+  puts "Verifying the Trigger of 'OBOL_Recursive_Delete' windows task"
   its('strip') { should eq 'PT5M' }
 end
 
@@ -132,12 +113,15 @@ describe file('C:\OBOL\Utilities\OBOL_Recursive_Delete\obol_recursive_delete.bat
   it { should exist }
   its('content') { should include 'OBOL_Recursive_Delete.exe /rootdirectory:"M:\Logs" /fileage:30' }
 end
+
 # Title : Verifying if 'ODBC Driver 17' is installed
+
 describe package('Microsoft ODBC Driver 17 for SQL Server') do
   it { should be_installed }
 end
 
-# Title : Verifying if 'ODcto Tentacle' is installed
+# Title : Verifying if 'Octo Tentacle' is installed
+
 describe package('Octopus Deploy Tentacle') do
   it { should be_installed }
 end
