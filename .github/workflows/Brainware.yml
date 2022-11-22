@@ -3,7 +3,7 @@ name: 'BRAINWARE VISIBILITY AMI TEST'
 on:
   push:
     branches:
-      - mainn
+      - main
   
 env:
   AMI_ID: ami-08cff8036945d8605
@@ -112,7 +112,7 @@ jobs:
         }
         }
         echo "Testing via WinRM https-5986"
-        inspec exec .\BrainwareAMI_Test.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed        
+        inspec exec .\ob_brainware_test.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed        
         
   DestroyEC2:
     if: ${{ always() }}
