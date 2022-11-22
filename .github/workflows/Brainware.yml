@@ -3,7 +3,7 @@ name: 'BRAINWARE VISIBILITY AMI TEST'
 on:
   push:
     branches:
-      - main
+      - mainn
   
 env:
   AMI_ID: ami-08cff8036945d8605
