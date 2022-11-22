@@ -31,7 +31,7 @@ describe registry_key({
                         key: '\System\CurrentControlSet\Control'
                       }) do
   it { should exist }
-  its('ServicesPipeTimeout') { should eq 60000 }
+  its('ServicesPipeTimeout') { should eq 60_000 }
 end
 
 # Title : Test Outcome #3
@@ -47,7 +47,9 @@ end
 
 describe windows_task('IIS Reset') do
   it { should exist }
-  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe IISRESET' }
+  its('task_to_run') do
+    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe IISRESET'
+  end
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -70,7 +72,9 @@ end
 
 describe windows_task('Service Restart') do
   it { should exist }
-  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Restart' }
+  its('task_to_run') do
+    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Restart'
+  end
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -93,7 +97,9 @@ end
 
 describe windows_task('Service Monitor') do
   it { should exist }
-  its('task_to_run') { should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Start' }
+  its('task_to_run') do
+    should eq 'C:\\OBOL\\Utilities\\GCSServiceStartRestarter\\Application\\GCSServiceStartRestarter.exe Start'
+  end
   its('run_as_user') { should eq 'SYSTEM' }
 end
 
@@ -125,6 +131,7 @@ end
 
 describe powershell("$task = Get-ScheduledTask -TaskName 'OBOL_Recursive_Delete'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
+  # puts "Verifying the Trigger of ' OBOL_Recursive_Delete' windows task"
   its('strip') { should eq 'PT5M' }
 end
 
@@ -147,7 +154,6 @@ end
 describe package('*Microsoft Visual C++ *2010 *64 Redistributable - 10.0.30319') do
   it { should be_installed }
 end
-
 # Title : Verifying if 'VC86' is installed
 describe package('*Microsoft Visual C++ *2010 *86 Redistributable - 10.0.30319') do
   it { should be_installed }
