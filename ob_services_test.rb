@@ -1,28 +1,27 @@
-# Title : Test Outcome #1a
-# Description: Verifying if the odbcad32 shortcut exists
+# frozen_string_literal: true
+
+# Title : Test Outcome #1
+# Description : Verifying if the odbcad32 shortcut exists
 
 describe file('C:\Users\Public\Desktop\odbcad32.lnk') do
   it { should exist }
 end
 
-# Title : Test Outcome #1a
-# Description: Verifying the target path of shortcut
+# Title : Test Outcome #1
+# Description : Verifying the target path of shortcut
 
 describe powershell("$Shortcuts = Get-ChildItem -Recurse 'C:\\Users\\Public\\Desktop\\' -Include odbcad32.lnk
     $Shell = New-Object -ComObject WScript.Shell
     foreach ($Shortcut in $Shortcuts)
     {
         $Properties = @{
-        ShortcutName = $Shortcut.Name;
-        ShortcutFull = $Shortcut.FullName;
-        ShortcutPath = $shortcut.DirectoryName
                 targetpath =  $shortcut.targetpath
         Target = $Shell.CreateShortcut($Shortcut).targetpath
         }
                  New-Object PSObject -Property $Properties
                  }") do
   puts 'Verifying the target path of shortcut'
-  its('stdout') { should include 'Target       : C:\Windows\SysWOW64\odbcad32.exe' }
+  its('stdout') { should include 'C:\Windows\SysWOW64\odbcad32.exe' }
 end
 
 # Title : Test Outcome #2
@@ -102,7 +101,7 @@ end
 
 describe powershell("$task = Get-ScheduledTask -TaskName 'OBOL_Recursive_Delete'
 $task.Triggers[0].Repetition | select -ExpandProperty interval") do
-  puts "Verifying the Trigger of 'OBOL_Recursive_Delete' windows task"
+  puts "Verifying the Trigger of ' OBOL_Recursive_Delete' windows task"
   its('strip') { should eq 'PT5M' }
 end
 
