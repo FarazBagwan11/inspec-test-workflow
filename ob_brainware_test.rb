@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Title : Test Outcome #1a
 # Description : Verifying if the odbcad32 shortcut exists
 
@@ -154,12 +156,15 @@ end
 describe package('*Microsoft Visual C++ *2010 *64 Redistributable - 10.0.30319') do
   it { should be_installed }
 end
+
 # Title : Verifying if 'VC86' is installed
+
 describe package('*Microsoft Visual C++ *2010 *86 Redistributable - 10.0.30319') do
   it { should be_installed }
 end
 
-# Title : Verifying if .Net 3.1 is installed
+# Title : Verifying if '.Net 3.1' is installed
+
 describe package('Microsoft .NET Core Runtime - 3.1.3 (x64)') do
   it { should be_installed }
 end
