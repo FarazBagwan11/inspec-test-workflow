@@ -17,7 +17,7 @@ jobs:
   Create_and_DeployEC2:
     runs-on: windows-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it.
       - name: Checkout code from master branch
         uses: actions/checkout@v2
 
