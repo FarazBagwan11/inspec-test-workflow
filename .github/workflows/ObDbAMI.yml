@@ -99,6 +99,7 @@ jobs:
         echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
         $ipaddress="$IP"
         $port = "5986"
+        $ErrorActionPreference = ‘SilentlyContinue’
         $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
         while($true){
         if ($connection.Connected) {
