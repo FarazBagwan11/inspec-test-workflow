@@ -3,13 +3,9 @@ net user Administrator "Password#1"
 Remove-Item -Path WSMan:\Localhost\listener\listener* -Recurse
 $hostname = Get-EC2InstanceMetadata -Category PublicHostname
 $Cert = New-SelfSignedCertificate -DnsName "$hostname" -CertStoreLocation Cert:\LocalMachine\My 
-
 New-Item WSMan:\localhost\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $Cert.Thumbprint -Force:$true
-
 netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986
-
 Enable-PSRemoting
-winrm quickconfig -q
 winrm set "winrm/config" '@{MaxTimeoutms="1800000"}'
 winrm set "winrm/config/winrs" '@{MaxMemoryPerShellMB="1024"}'
 winrm set "winrm/config/service" '@{AllowUnencrypted="false"}'
@@ -17,9 +13,6 @@ winrm set "winrm/config/client" '@{AllowUnencrypted="false"}'
 winrm set "winrm/config/service/auth" '@{Basic="true"}'
 winrm set "winrm/config/client/auth" '@{Basic="true"}'
 winrm set "winrm/config/service/auth" '@{CredSSP="true"}'
-
-netsh advfirewall firewall add rule name="WinRM-HTTP" dir=in localport=5985 protocol=TCP action=allow
-
 net stop winrm
 cmd.exe /c sc config winrm start=auto
 net start winrm
