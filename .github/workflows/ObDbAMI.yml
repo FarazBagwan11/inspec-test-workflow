@@ -6,8 +6,8 @@ on:
       - main
   
 env:
-  AMI_ID: ami-0099841180467902f
-  INST_TYPE: m5.xlarge
+  AMI_ID: ami-03ad8354260b95b6f
+  INST_TYPE: t3.xlarge
   KEY: GlobalLogics
   SG_ID: sg-0c8925ad61b8ede76
   SUB_ID: subnet-0b0d514911d387518
@@ -95,6 +95,9 @@ jobs:
         $IP
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
+        
+        echo "Testing via WinRM http-5985"
+        inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         
         echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
         $ipaddress="$IP"
