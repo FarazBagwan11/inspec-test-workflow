@@ -106,6 +106,19 @@ jobs:
         echo "Testing via WinRM https-5986"
         inspec exec .\ob_db_test.rb --host $IP --user ${{ secrets.USERNAME }} --password ${{ secrets.PASS }} --backend winrm --ssl --self-signed        
         
+        $ErrorActionPreference = ‘SilentlyContinue’
+        $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
+        while($true){
+        if ($connection.Connected) {
+        echo " Success: WINRM HTTPS PORT 5986 is OPEN and LISTENING"
+        Break
+        } else {
+        echo " FAILURE: WINRM HTTPS PORT 5986 is NOT LISTENING. Trying again"
+        sleep 5
+        Continue 
+        }
+        }
+        
   DestroyEC2:
     if: ${{ always() }}
     needs: [Create_and_DeployEC2, Install_Inspec_and_Run_Tests]  
