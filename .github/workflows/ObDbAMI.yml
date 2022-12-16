@@ -99,6 +99,9 @@ jobs:
         $password = ConvertTo-SecureString 'Password#1' -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential ('Administrator', $password)
         invoke-command -ComputerName $IP -Credential $credential -AsJob -FilePath .\user.ps1 
+        sleep 10
+        invoke-command -ComputerName "$IP" -Credential $credential -AsJob -ScriptBlock {$hostname = Get-EC2InstanceMetadata -Category PublicHostname;$Cert = New-SelfSignedCertificate -DnsName "$hostname" -CertStoreLocation Cert:\LocalMachine\My;New-Item WSMan:\localhost\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $Cert.Thumbprint -Force:$true;netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986}
+        sleep 10
         
         echo "Testing via WinRM Http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
