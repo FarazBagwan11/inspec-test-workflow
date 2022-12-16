@@ -69,34 +69,7 @@ jobs:
           }
           }
           
-          aws ec2 reboot-instances --instance-ids $ID
-          while ((Get-Date) -le $limit){
-          $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
-          $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
-          If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
-          '2/2 checks Passed'
-          echo "Check 1: Instance Status -> $instance_status"
-          echo "Check 2: System Status -> $system_status"
-          sleep 2
-          Break
-          } ElseIf ($instance_status -eq 'failed' -AND $system_status -eq 'failed')  {
-          '2/2 checks Failed'
-          echo "Check 1: Instance Status -> $instance_status"
-          echo "Check 2: System Status -> $system_status"
-          sleep 2
-          Break
-          } ElseIf ((Get-Date) -gt $slimit){
-          echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
-          Break
-          } Else {
-          'initializing'
-          echo "Check 1: Instance Status -> $instance_status"
-          echo "Check 2: System Status -> $system_status"
-          sleep 20
-          Continue 
-          }
-          }
-          
+
   Install_Inspec_and_Run_Tests:
     needs: Create_and_DeployEC2
     runs-on: windows-latest
@@ -125,6 +98,40 @@ jobs:
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
         
+        echo "Initiating instance reachability checks after reboot..."   
+        $slimit = (Get-Date).AddMinutes(10)
+        $limit = (Get-Date).AddMinutes(11)
+        $instance_status=''
+        $system_status=''
+        
+        aws ec2 reboot-instances --instance-ids $ID
+        while ((Get-Date) -le $limit){
+        $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
+        $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
+        If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
+        '2/2 checks Passed'
+        echo "Check 1: Instance Status -> $instance_status"
+        echo "Check 2: System Status -> $system_status"
+        sleep 2
+        Break
+        } ElseIf ($instance_status -eq 'failed' -AND $system_status -eq 'failed')  {
+        '2/2 checks Failed'
+        echo "Check 1: Instance Status -> $instance_status"
+        echo "Check 2: System Status -> $system_status"
+        sleep 2
+        Break
+        } ElseIf ((Get-Date) -gt $slimit){
+        echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
+        Break
+        } Else {
+        'initializing'
+        echo "Check 1: Instance Status -> $instance_status"
+        echo "Check 2: System Status -> $system_status"
+        sleep 20
+        Continue 
+        }
+        }
+          
         echo "Testing via WinRM http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         
