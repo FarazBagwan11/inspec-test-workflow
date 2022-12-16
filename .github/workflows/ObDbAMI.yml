@@ -96,7 +96,22 @@ jobs:
         $IP
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
-                        
+        
+        echo "Checking if WINRM-HTTP PORT (5985) is OPEN AND LISTENING...."
+        $ipaddress="$IP"
+        $port = "5985"
+        $connection = New-Object System.Net.Sockets.TcpClient($ipaddress, $port)
+        while($true){
+        if ($connection.Connected) {
+        echo " Success: WINRM HTTP PORT 5985 is OPEN and LISTENING"
+        Break
+        } else {
+        echo " FAILURE: WINRM HTTP PORT 5985 is NOT LISTENING. Trying again"
+        sleep 5
+        Continue 
+        }
+        }
+        
         echo "Testing via WinRM http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         
