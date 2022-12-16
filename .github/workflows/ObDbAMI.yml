@@ -96,6 +96,10 @@ jobs:
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
         
+        $password = ConvertTo-SecureString 'Password#1' -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ('Administrator', $password)
+        invoke-command -ComputerName $IP -Credential $credential -AsJob -FilePath .\user.ps1 
+        
         echo "Testing via WinRM Http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         
