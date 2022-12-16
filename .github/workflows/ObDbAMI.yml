@@ -125,7 +125,7 @@ jobs:
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
         
-        echo "Testing via WinRM Http-5985"
+        echo "Testing via WinRM http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
         
         echo "Checking if WINRM-HTTPS PORT (5986) is OPEN AND LISTENING...."
