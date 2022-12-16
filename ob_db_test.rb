@@ -65,7 +65,7 @@ describe powershell('Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\Cu
 end
 
 describe powershell('Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden"') do
-  its('stdout') { should include 'Hidden       : 1' }
+  its('stdout') { should include 'Hidden       : 2' }
 end
 
 describe powershell('Get-NetFirewallProfile -Name Domain') do
