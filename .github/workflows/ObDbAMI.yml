@@ -6,7 +6,7 @@ on:
       - main
   
 env:
-  AMI_ID: ami-03ad8354260b95b6f
+  AMI_ID: ami-0099841180467902f
   INST_TYPE: t3.xlarge
   KEY: GlobalLogics
   SG_ID: sg-0c8925ad61b8ede76
@@ -31,8 +31,8 @@ jobs:
        
       - name: Creating EC2     
         run: |
-          certutil -decode file.txt new11.txt
-          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data file://new11.txt
+          # certutil -decode file.txt new11.txt
+          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data file://user.txt
           $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
           $ID
           
@@ -68,6 +68,32 @@ jobs:
           Continue 
           }
           }
+          
+          aws ec2 reboot-instances --instance-ids $ID
+          If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
+          '2/2 checks Passed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 2
+          Break
+          } ElseIf ($instance_status -eq 'failed' -AND $system_status -eq 'failed')  {
+          '2/2 checks Failed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 2
+          Break
+          } ElseIf ((Get-Date) -gt $slimit){
+          echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
+          Break
+          } Else {
+          'initializing'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 20
+          Continue 
+          }
+          }
+          
   Install_Inspec_and_Run_Tests:
     needs: Create_and_DeployEC2
     runs-on: windows-latest
@@ -95,13 +121,6 @@ jobs:
         $IP
         $env:Path += ';C:\opscode\inspec\bin\'
         inspec --chef-license=accept
-        
-        $password = ConvertTo-SecureString 'Password#1' -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential ('Administrator', $password)
-        invoke-command -ComputerName $IP -Credential $credential -AsJob -FilePath .\user.ps1 
-        sleep 10
-        invoke-command -ComputerName "$IP" -Credential $credential -AsJob -ScriptBlock {$hostname = Get-EC2InstanceMetadata -Category PublicHostname;$Cert = New-SelfSignedCertificate -DnsName "$hostname" -CertStoreLocation Cert:\LocalMachine\My;New-Item WSMan:\localhost\Listener -Address * -Transport HTTPS -HostName $hostname -CertificateThumbPrint $Cert.Thumbprint -Force:$true;netsh advfirewall firewall add rule name="WinRM-HTTPS" dir=in action=allow protocol=TCP localport=5986}
-        sleep 10
         
         echo "Testing via WinRM Http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
