@@ -99,8 +99,6 @@ jobs:
                         
         echo "Testing via WinRM http-5985"
         inspec exec .\ob_db_test.rb -t winrm://${{ secrets.USERNAME }}@$IP --password ${{ secrets.PASS }}
-        }
-        }
         
   DestroyEC2:
     if: ${{ always() }}
