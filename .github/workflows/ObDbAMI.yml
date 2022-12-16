@@ -70,6 +70,9 @@ jobs:
           }
           
           aws ec2 reboot-instances --instance-ids $ID
+          while ((Get-Date) -le $limit){
+          $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
+          $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
           If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
           '2/2 checks Passed'
           echo "Check 1: Instance Status -> $instance_status"
