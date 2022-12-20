@@ -1,0 +1,125 @@
+name: 'Linux EC2 Creation'
+
+on:
+  push:
+    branches:
+      - main
+  
+env:
+
+  env:
+  AMI_ID: ami-073fb4715b93eeed4
+  INST_TYPE: t3.medium
+  KEY: GlobalLogics
+  SG_ID: sg-0c8925ad61b8ede76
+  SUB_ID: subnet-0b0d514911d387518
+  INST_NAME: EC2-Linux-Test-${{ github.run_id }}-${{ github.run_attempt }}
+  USER: ec2-user
+  PORT: 22
+          
+jobs:
+  Create_and_DeployEC2:
+    runs-on: windows-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code from master branch
+        uses: actions/checkout@v2
+
+      # Configure AWS Credential
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: ${{ secrets.REGION }}
+
+          
+      - name: Creating EC2     
+        run: |
+          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]"
+          $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
+          $ID
+          
+          echo "Initiating instance reachability checks..."        
+          $slimit = (Get-Date).AddMinutes(10)
+          $limit = (Get-Date).AddMinutes(11)
+          $instance_status=''
+          $system_status=''
+          
+          while($true){
+          $instance_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].InstanceStatus.Details[*].Status' --output text
+          $system_status=aws ec2 describe-instance-status --instance-ids $ID --query 'InstanceStatuses[*].SystemStatus.Details[*].Status' --output text
+          If ($instance_status -eq 'passed' -AND $system_status -eq 'passed')  {
+          '2/2 checks Passed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 5
+          Break
+          } ElseIf ($instance_status -eq 'failed' -AND $system_status -eq 'failed')  {
+          '2/2 checks Failed'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 5
+          Break
+          } ElseIf ((Get-Date) -gt $slimit){
+          echo "Instance is taking too much time to initialize. More than 15 minutes have passed since creation"
+          Break
+          } Else {
+          'initializing'
+          echo "Check 1: Instance Status -> $instance_status"
+          echo "Check 2: System Status -> $system_status"
+          sleep 20
+          Continue 
+          }
+          }
+          
+  Install_Inspec_and_Run_Tests:
+    needs: Create_and_DeployEC2
+    runs-on: ubuntu-latest
+    steps:      
+    - name: Check out code
+      uses: actions/checkout@master
+    
+    - name: Install Inspec on runner
+      run: |
+        curl https://omnitruck.chef.io/install.sh | sudo bash -s -- -P inspec
+        
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+        aws-region: ${{ secrets.REGION }}
+
+    - name: Run tests
+      run: |
+        ID=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=tag:Name,Values=${{env.INST_NAME}}" --query 'Reservations[*].Instances[*].[InstanceId]' --output text`
+        echo "$ID"
+        IP=`aws ec2 describe-instances --filters "Name=instance-state-name,Values=running" "Name=instance-id,Values=$ID" --query 'Reservations[*].Instances[*].[PublicIpAddress]' --output text`
+        echo "$IP"
+        inspec --chef-license=accept       
+        
+        echo "Testing begins...."
+        echo "Testing via shh-22"
+        inspec exec test.rb -t ssh://${{env.USER}}@$IP -i GlobalLogics.pem
+        
+  DestroyEC2:
+    if: ${{ always() }}
+    needs: [Create_and_DeployEC2, Install_Inspec_and_Run_Tests]  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code from master branch
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ACCESS_KEY_SECRET }}
+          aws-region: ${{ secrets.REGION }}
+                 
+      - name: Destroy on SUCCESS OR FAILURE
+        run: |
+          ID=`aws ec2 describe-instances --filters 'Name=instance-state-name,Values=running' 'Name=tag:Name,Values=${{env.INST_NAME}}' --output text --query 'Reservations[*].Instances[*].InstanceId'`
+          echo "Destroying $ID"
+          aws ec2 terminate-instances --instance-ids $ID
