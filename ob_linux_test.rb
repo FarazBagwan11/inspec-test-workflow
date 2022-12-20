@@ -121,9 +121,8 @@ describe file('/etc/chrony.conf') do
   its('content') { should include 'server ntp.olympus.gaia.kosmos iburst' }
 end
 
-describe file('/etc/sudoers') do
-  it { should exist }
-  its('content') { should include '%dlg-iassrv-la  ALL=(ALL)       ALL ' }
+describe bash('sudo cat /etc/sudoers') do
+  its('stdout') { should include '%dlg-iassrv-la  ALL=(ALL)       ALL' }
 end
 
 describe file('/etc/motd') do
@@ -133,19 +132,12 @@ describe file('/etc/motd') do
   end
 end
 
-describe file('/etc/skel/.bash_profile') do
-  it { should exist }
-  its('content') { should include 'export HISTTIMEFORMAT="%Y-%m-%dT%T "' }
+describe bash('cat /etc/skel/.bash_profile') do
+  its('stdout') { should include 'export HISTTIMEFORMAT="%Y-%m-%dT%T "' }
 end
 
-describe file('/root/.bash_profile') do
-  it { should exist }
-  its('content') { should include 'export HISTTIMEFORMAT="%Y-%m-%dT%T "' }
-end
-
-describe file('/root/.bash_profile') do
-  it { should exist }
-  its('content') { should include 'export HISTTIMEFORMAT="%Y-%m-%dT%T "' }
+describe bash('sudo cat /root/.bash_profile') do
+  its('stdout') { should include 'export HISTTIMEFORMAT="%Y-%m-%dT%T "' }
 end
 
 describe file('/etc/profile.d/timeout.sh') do
@@ -158,24 +150,14 @@ describe file('/etc/security/limits.conf') do
   its('content') { should include '*               soft    core            0' }
 end
 
-describe file('/etc/ssh/sshd_config') do
-  it { should exist }
-  its('content') { should include 'X11Forwarding no' }
-  its('content') { should include 'LogLevel INFO' }
-  its('content') { should include '#PasswordAuthentication' }
-  its('content') { should include '#IgnoreRhosts' }
-  its('content') { should include '#X11Forwarding' }
-  its('content') { should include '#LogLevel' }
-end
-
-describe file('/etc/ssh/sshd_config') do
-  it { should exist }
-  its('content') { should include 'X11Forwarding no' }
-end
-
-describe file('/etc/ssh/sshd_config') do
-  it { should exist }
-  its('content') { should include 'PasswordAuthentication yes' }
+describe bash('sudo cat /etc/ssh/sshd_config') do
+  its('stdout') { should include 'LogLevel INFO' }
+  its('stdout') { should include '#PasswordAuthentication' }
+  its('stdout') { should include '#IgnoreRhosts' }
+  its('stdout') { should include '#X11Forwarding' }
+  its('stdout') { should include '#LogLevel' }
+  its('stdout') { should include 'X11Forwarding no' }
+  its('stdout') { should include 'PasswordAuthentication yes' }
 end
 
 describe file('/etc/postfix/main.cf') do
