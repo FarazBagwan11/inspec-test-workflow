@@ -1,4 +1,4 @@
-name: 'Linux EC2 Creation'
+name: 'LINUX AMI WORKFLOW'
 
 on:
   push:
@@ -101,7 +101,7 @@ jobs:
         
         echo "Testing begins...."
         echo "Testing via shh-22"
-        inspec exec test.rb -t ssh://${{env.USER}}@$IP -i GlobalLogics.pem
+        inspec exec ob_linux_test.rb -t ssh://${{env.USER}}@$IP -i GlobalLogics.pem
         
   DestroyEC2:
     if: ${{ always() }}
