@@ -38,7 +38,7 @@ jobs:
           $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
           $ID
           
-          echo "Initiating instance reachability checks..."        
+          echo "Initiating instance reachability checks.."        
           $slimit = (Get-Date).AddMinutes(10)
           $limit = (Get-Date).AddMinutes(11)
           $instance_status=''
