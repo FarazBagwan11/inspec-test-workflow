@@ -6,8 +6,6 @@ on:
       - main
   
 env:
-
-  env:
   AMI_ID: ami-073fb4715b93eeed4
   INST_TYPE: t3.medium
   KEY: GlobalLogics
