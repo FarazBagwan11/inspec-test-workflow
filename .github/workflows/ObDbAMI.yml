@@ -31,8 +31,7 @@ jobs:
        
       - name: Creating EC2     
         run: |
-          certutil -decode file.txt new11.txt
-          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data file://new11.txt
+          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]"
           $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
           $ID
           
