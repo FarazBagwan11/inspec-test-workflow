@@ -31,7 +31,8 @@ jobs:
        
       - name: Creating EC2     
         run: |
-          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data $'net user ${{ secrets.USERNAME }} ${{ secrets.PASS }}'
+          certutil -decode obdb_new.txt new12.txt
+          aws ec2 run-instances --image-id $env:AMI_ID --count 1 --instance-type $env:INST_TYPE --key-name $env:KEY --security-group-ids $env:SG_ID --subnet-id $env:SUB_ID --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$env:INST_NAME}]" --user-data file://new12.txt
           $ID=aws ec2 describe-instances --filters "Name=tag:Name,Values=$env:INST_NAME" --query 'Reservations[*].Instances[*].[InstanceId]' --output text
           $ID
           
